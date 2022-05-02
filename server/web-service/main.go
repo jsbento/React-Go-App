@@ -39,6 +39,7 @@ func getAlbums(c *gin.Context) {
 }
 
 func postUser(c *gin.Context) {
+	dbclient = connect()
 	username := c.Query("username")
 	email := c.Query("email")
 	password := c.Query("password")
@@ -52,9 +53,11 @@ func postUser(c *gin.Context) {
 
 	res, err := collection.InsertOne(context.TODO(), userDoc)
 	if err != nil {
+		disconnect(dbclient)
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Failed to add user"})
 	}
 	fmt.Printf("Sucessfully inserted with id: %v\n", res.InsertedID)
+	disconnect(dbclient)
 	c.IndentedJSON(http.StatusOK, userDoc)
 }
 
@@ -63,6 +66,7 @@ func getUsers(c *gin.Context) {
 }
 
 func getUserByUsername(c *gin.Context) {
+	dbclient = connect()
 	username := c.Param("username")
 	collection := dbclient.Database("react-go-app").Collection("users")
 	fmt.Printf("%s\n", username)
@@ -70,14 +74,17 @@ func getUserByUsername(c *gin.Context) {
 	var result bson.M
 	err := collection.FindOne(context.TODO(), bson.D{{Key: "username", Value: username}}, nil).Decode(&result)
 	if err != nil {
+		disconnect(dbclient)
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "User not found with username: " + username})
 		return
 	}
 	_, res := json.Marshal(result)
 	if res != nil {
+		disconnect(dbclient)
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error converting bson"})
 		return
 	} else {
+		disconnect(dbclient)
 		c.IndentedJSON(http.StatusOK, result)
 	}
 }
@@ -115,10 +122,19 @@ func getDBURI(key string) string {
 	return os.Getenv(key)
 }
 
+func disconnect(c *mongo.Client) {
+	if c == nil {
+		return
+	}
+	err := c.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 var dbclient *mongo.Client
 
 func main() {
-	dbclient = connect()
 	router := gin.Default()
 	router.GET("/albums", getAlbums)
 	router.GET("/users", getUsers)
