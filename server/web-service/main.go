@@ -15,27 +15,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type album struct {
-	ID     string  `json:"id"`
-	Title  string  `json:"title"`
-	Artist string  `json:"artist"`
-	Price  float64 `json:"price"`
-}
+var dbclient *mongo.Client
 
 type User struct {
 	Username string `json:"username"`
 	Email    string `email:"email"`
 	Password string `json:"password"`
-}
-
-var albums = []album{
-	{ID: "1", Title: "Blue Train", Artist: "John Coltrane", Price: 56.99},
-	{ID: "2", Title: "Jeru", Artist: "Gerry Mulligan", Price: 17.99},
-	{ID: "3", Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
-}
-
-func getAlbums(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, albums)
 }
 
 func postUser(c *gin.Context) {
@@ -69,8 +54,6 @@ func getUserByUsername(c *gin.Context) {
 	dbclient = connect()
 	username := c.Param("username")
 	collection := dbclient.Database("react-go-app").Collection("users")
-	fmt.Printf("%s\n", username)
-	//opts := options.FindOne().SetSort(bson.D{{Key: "username", Value: username}})
 	var result bson.M
 	err := collection.FindOne(context.TODO(), bson.D{{Key: "username", Value: username}}, nil).Decode(&result)
 	if err != nil {
@@ -87,19 +70,6 @@ func getUserByUsername(c *gin.Context) {
 		disconnect(dbclient)
 		c.IndentedJSON(http.StatusOK, result)
 	}
-}
-
-func getAlbumByID(c *gin.Context) {
-	id := c.Param("id")
-
-	for _, a := range albums {
-		if a.ID == id {
-			c.IndentedJSON(http.StatusOK, a)
-			return
-		}
-	}
-
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
 }
 
 func connect() *mongo.Client {
@@ -132,14 +102,10 @@ func disconnect(c *mongo.Client) {
 	}
 }
 
-var dbclient *mongo.Client
-
 func main() {
 	router := gin.Default()
-	router.GET("/albums", getAlbums)
 	router.GET("/users", getUsers)
 	router.GET("/users/:username", getUserByUsername)
 	router.POST("/users", postUser)
-	router.GET("/albums/:id", getAlbumByID)
 	router.Run("localhost:8080")
 }
