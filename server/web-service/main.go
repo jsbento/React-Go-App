@@ -1,9 +1,18 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type album struct {
@@ -11,6 +20,12 @@ type album struct {
 	Title  string  `json:"title"`
 	Artist string  `json:"artist"`
 	Price  float64 `json:"price"`
+}
+
+type User struct {
+	Username string `json:"username"`
+	Email    string `email:"email"`
+	Password string `json:"password"`
 }
 
 var albums = []album{
@@ -21,6 +36,50 @@ var albums = []album{
 
 func getAlbums(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, albums)
+}
+
+func postUser(c *gin.Context) {
+	username := c.Query("username")
+	email := c.Query("email")
+	password := c.Query("password")
+	collection := dbclient.Database("react-go-app").Collection("users")
+
+	userDoc := User{
+		Username: username,
+		Email:    email,
+		Password: password,
+	}
+
+	res, err := collection.InsertOne(context.TODO(), userDoc)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Failed to add user"})
+	}
+	fmt.Printf("Sucessfully inserted with id: %v\n", res.InsertedID)
+	c.IndentedJSON(http.StatusOK, userDoc)
+}
+
+func getUsers(c *gin.Context) {
+	//collection := dbclient.Database("react-go-app").Collection("users")
+}
+
+func getUserByUsername(c *gin.Context) {
+	username := c.Param("username")
+	collection := dbclient.Database("react-go-app").Collection("users")
+	fmt.Printf("%s\n", username)
+	//opts := options.FindOne().SetSort(bson.D{{Key: "username", Value: username}})
+	var result bson.M
+	err := collection.FindOne(context.TODO(), bson.D{{Key: "username", Value: username}}, nil).Decode(&result)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "User not found with username: " + username})
+		return
+	}
+	_, res := json.Marshal(result)
+	if res != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error converting bson"})
+		return
+	} else {
+		c.IndentedJSON(http.StatusOK, result)
+	}
 }
 
 func getAlbumByID(c *gin.Context) {
@@ -36,20 +95,35 @@ func getAlbumByID(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
 }
 
-func postAlbums(c *gin.Context) {
-	var newAlbum album
-	if err := c.BindJSON(&newAlbum); err != nil {
-		return
+func connect() *mongo.Client {
+	uri := getDBURI("MONGODB_URI")
+	if uri == "" {
+		log.Fatal("MONGODB_URI not set.")
 	}
-
-	albums = append(albums, newAlbum)
-	c.IndentedJSON(http.StatusCreated, newAlbum)
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		panic(err)
+	}
+	return client
 }
 
+func getDBURI(key string) string {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error loading .env")
+	}
+	return os.Getenv(key)
+}
+
+var dbclient *mongo.Client
+
 func main() {
+	dbclient = connect()
 	router := gin.Default()
 	router.GET("/albums", getAlbums)
-	router.GET("/albums:id")
-	router.POST("/albums", postAlbums)
+	router.GET("/users", getUsers)
+	router.GET("/users/:username", getUserByUsername)
+	router.POST("/users", postUser)
+	router.GET("/albums/:id", getAlbumByID)
 	router.Run("localhost:8080")
 }
