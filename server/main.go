@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -36,18 +35,39 @@ func postUser(c *gin.Context) {
 		Password: password,
 	}
 
-	res, err := collection.InsertOne(context.TODO(), userDoc)
+	_, err := collection.InsertOne(context.TODO(), userDoc)
 	if err != nil {
 		disconnect(dbclient)
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Failed to add user"})
+	} else {
+		disconnect(dbclient)
+		c.IndentedJSON(http.StatusOK, userDoc)
 	}
-	fmt.Printf("Sucessfully inserted with id: %v\n", res.InsertedID)
-	disconnect(dbclient)
-	c.IndentedJSON(http.StatusOK, userDoc)
 }
 
-func getUsers(c *gin.Context) {
-	//collection := dbclient.Database("react-go-app").Collection("users")
+func updateUserEmail(c *gin.Context) {
+	username := c.Param("username")
+	email := c.Query("email")
+	dbclient = connect()
+
+	filter := bson.M{
+		"$set": bson.M{"username": username},
+	}
+
+	update := bson.M{
+		"$set": bson.M{"email": email},
+	}
+
+	collection := dbclient.Database("react-go-app").Collection("users")
+	err := collection.FindOneAndUpdate(context.TODO(), filter, update, nil)
+
+	if err != nil {
+		disconnect(dbclient)
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Error updating user: " + username})
+	} else {
+		disconnect(dbclient)
+		c.IndentedJSON(http.StatusOK, gin.H{"message": "Updated user: " + username})
+	}
 }
 
 func getUserByUsername(c *gin.Context) {
@@ -104,7 +124,7 @@ func disconnect(c *mongo.Client) {
 
 func main() {
 	router := gin.Default()
-	router.GET("/users", getUsers)
+	router.PUT("/users/:username", updateUserEmail)
 	router.GET("/users/:username", getUserByUsername)
 	router.POST("/users", postUser)
 	router.Run("localhost:8080")
