@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -18,30 +20,33 @@ var dbclient *mongo.Client
 
 type User struct {
 	Username string `json:"username"`
-	Email    string `email:"email"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 func postUser(c *gin.Context) {
 	dbclient = connect()
-	username := c.Query("username")
-	email := c.Query("email")
-	password := c.Query("password")
+
+	body, _ := ioutil.ReadAll(c.Request.Body)
+	var newUser User
+	json.Unmarshal(body, &newUser)
+	fmt.Printf("%v\n", newUser)
+	// err := c.BindJSON(&newUser)
+	// if err != nil {
+	// 	disconnect(dbclient)
+	// 	c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Could not parse response body"})
+	// }
+	// fmt.Printf("%v", newUser)
+
 	collection := dbclient.Database("react-go-app").Collection("users")
 
-	userDoc := User{
-		Username: username,
-		Email:    email,
-		Password: password,
-	}
-
-	_, err := collection.InsertOne(context.TODO(), userDoc)
-	if err != nil {
+	_, erro := collection.InsertOne(context.TODO(), newUser)
+	if erro != nil {
 		disconnect(dbclient)
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Failed to add user"})
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Failed to add user"})
 	} else {
 		disconnect(dbclient)
-		c.IndentedJSON(http.StatusOK, userDoc)
+		c.IndentedJSON(http.StatusOK, gin.H{"message": "Successfully added new user"})
 	}
 }
 
@@ -92,6 +97,30 @@ func getUserByUsername(c *gin.Context) {
 	}
 }
 
+func checkUserExists(c *gin.Context) {
+	dbclient = connect()
+	username := c.Query("username")
+	collection := dbclient.Database("react-go-app").Collection("users")
+	exists := bson.D{{Key: "username", Value: username}}
+	var result bson.M
+	err := collection.FindOne(context.TODO(), exists, nil).Decode(&result)
+	if err != nil {
+		disconnect(dbclient)
+		if err == mongo.ErrNoDocuments {
+			c.IndentedJSON(http.StatusOK, gin.H{"message": "No user with username: " + username, "exists": false})
+		} else {
+			c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error accessing database"})
+		}
+	} else {
+		_, erro := json.Marshal(result)
+		disconnect(dbclient)
+		if erro != nil {
+			c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error converting bson"})
+		}
+		c.IndentedJSON(http.StatusOK, gin.H{"message": "User found with username: " + username, "exists": result != nil})
+	}
+}
+
 func connect() *mongo.Client {
 	uri := getDBURI("MONGODB_URI")
 	if uri == "" {
@@ -125,7 +154,8 @@ func disconnect(c *mongo.Client) {
 func main() {
 	router := gin.Default()
 	router.PUT("/users/:username", updateUserEmail)
-	router.GET("/users/:username", getUserByUsername)
+	router.GET("/users/find/:username", getUserByUsername)
+	router.GET("/users/exists", checkUserExists)
 	router.POST("/users", postUser)
 	router.Run("localhost:8080")
 }

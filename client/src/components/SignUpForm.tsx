@@ -17,6 +17,8 @@ const initial_values:FormValues = {
     confirm_password: ""
 }
 
+const SERVER_URI = "http://localhost:8080"
+
 const SignUpForm: React.FC<SignUpProps> = () => {
     const [username, setUsername] = useState<string | null>(null);
     const [email, setEmail] = useState<string | null>(null);
@@ -24,14 +26,39 @@ const SignUpForm: React.FC<SignUpProps> = () => {
     const [conf_pass, setConfPass] = useState<string | null>(null);
 
     return (
-        <div>
+        <>
             <Formik validationSchema={SignUpScheme} initialValues={initial_values} onSubmit={async (values, actions) => {
-                //Check username doesnt already exist
-                //Confirm passwords match
-                //Post user
+                const exists = await fetch(SERVER_URI+`/users/exists?=${values.username}`, {
+                    method: 'GET'
+                })
+                .then(response => {
+                    if(response.status === 200)
+                        return response.json();
+                })
+                .then(data => { return data.exists; })
+                .catch(err => { console.log(err); });
+
+                if(exists)
+                    alert(`Username ${values.username} already exists.`);
+                if(values.password !== values.confirm_password)
+                    alert('Passwords do not match');
+                
+                await fetch(SERVER_URI+'/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: values.username,
+                        email: values.email,
+                        password: values.password
+                    })
+                })
+                .catch(error => { console.log(error); });
+                actions.setSubmitting(false);
             }}>
                 {({errors, isSubmitting}) => (
-                    <Form>
+                    <Form className="flex flex-col justify-center items-center">
                         <label htmlFor="username">Username</label>
                         <Field id="username" name="username" type="text" placeholder="Username" autoComplete="off"/>
                         <label htmlFor="email">Email</label>
@@ -45,7 +72,7 @@ const SignUpForm: React.FC<SignUpProps> = () => {
                     </Form>
                 )}
             </Formik>
-        </div>
+        </>
     );
 };
 
