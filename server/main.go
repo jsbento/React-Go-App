@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -32,13 +31,6 @@ func postUser(c *gin.Context) {
 	body, _ := ioutil.ReadAll(c.Request.Body)
 	var newUser User
 	json.Unmarshal(body, &newUser)
-	fmt.Printf("%v\n", newUser)
-	// err := c.BindJSON(&newUser)
-	// if err != nil {
-	// 	disconnect(dbclient)
-	// 	c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Could not parse response body"})
-	// }
-	// fmt.Printf("%v", newUser)
 
 	collection := dbclient.Database("react-go-app").Collection("users")
 
