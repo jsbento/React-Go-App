@@ -1,12 +1,6 @@
-export type AppProps = {
-    username: string,
-    token: string
-};
+import React from "react"
 
-export type Validation = {
-    name: string,
-    is_valid: boolean
-};
+export interface FooterProps {}
 
 export interface FormValues {
     username: string,
@@ -15,15 +9,6 @@ export interface FormValues {
     conf_pass: string,
 };
 
-export interface SignUpProps {};
-
-export interface IState {
-    username: string | null,
-    email: string | null, 
-    password: string | null,
-    confirm_password: string | null,
-    pending: boolean,
-    username_valid: Validation[],
-    email_valid: Validation[],
-    password_valid: Validation[]
+export interface LayoutProps {
+    children: React.ReactNode
 };

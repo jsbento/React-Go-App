@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import SignUpForm from './components/SignUpForm';
+import Layout from './components/Layout';
 
-function App() {
+function App({props}:any) {
   return (
-    <div className="App">
-      <SignUpForm/>
-    </div>
+    <Layout>
+      <Component {...props}/>
+    </Layout>
   );
 }
 
