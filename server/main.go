@@ -44,6 +44,25 @@ func postUser(c *gin.Context) {
 	}
 }
 
+func deleteUser(c *gin.Context) {
+	username := c.Query("username")
+
+	dbclient = connect()
+	collection := dbclient.Database("react-go-app").Collection("users")
+	filter := bson.D{
+		{Key: "username", Value: username},
+	}
+
+	err := collection.FindOneAndDelete(context.TODO(), filter, options.FindOneAndDelete())
+	if err != nil {
+		disconnect(dbclient)
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Deletion of user failed"})
+	} else {
+		disconnect(dbclient)
+		c.IndentedJSON(http.StatusOK, gin.H{"message": "Successfully deleted " + username})
+	}
+}
+
 func updateUserEmail(c *gin.Context) {
 	username := c.Param("username")
 	email := c.Query("email")
@@ -58,7 +77,7 @@ func updateUserEmail(c *gin.Context) {
 	}
 
 	collection := dbclient.Database("react-go-app").Collection("users")
-	err := collection.FindOneAndUpdate(context.TODO(), filter, update, nil)
+	err := collection.FindOneAndUpdate(context.TODO(), filter, update, options.FindOneAndUpdate())
 
 	if err != nil {
 		disconnect(dbclient)
@@ -161,5 +180,6 @@ func main() {
 	router.GET("/users/find/:username", getUserByUsername)
 	router.GET("/users/exists", checkUserExists)
 	router.POST("/users", postUser)
+	router.DELETE("/users", deleteUser)
 	router.Run("localhost:8080")
 }
