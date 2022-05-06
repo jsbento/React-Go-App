@@ -23,18 +23,24 @@ const SignUpForm: React.FC = () => {
     const [exists, setExists] = useState<boolean>(false);
     return (
         <div className="flex flex-col items-center">
-            <Formik validationSchema={SignUpScheme} initialValues={initial_values} onSubmit={async (values, actions) => {
-                await fetch(SERVER_URI+`/users/exists?=${values.username}`, {
+            <Formik validationSchema={SignUpScheme} validateOnBlur={false} validateOnChange={false} initialValues={initial_values} onSubmit={async (values, actions) => {
+                console.log(values.username);
+                
+                await fetch(SERVER_URI+`/users/exists?username=${values.username}`, {
                     method: 'GET'
                 })
                 .then(response => {
                     if(response.status === 200)
                         return response.json();
                 })
-                .then(data => { setExists(data.exists); })
+                .then(data => {
+                    setExists(data.exists);
+                    console.log(exists);
+                    console.log(data.message);
+                })
                 .catch(err => { console.log(err); });
 
-                if(!exists) {
+                if(exists) {
                     alert(`Username ${values.username} already exists.`);
                 }
                 else if(values.password !== values.conf_pass) {

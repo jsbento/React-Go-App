@@ -97,7 +97,7 @@ func checkUserExists(c *gin.Context) {
 	collection := dbclient.Database("react-go-app").Collection("users")
 	exists := bson.D{{Key: "username", Value: username}}
 	var result bson.M
-	err := collection.FindOne(context.TODO(), exists, nil).Decode(&result)
+	err := collection.FindOne(context.TODO(), exists, options.FindOne()).Decode(&result)
 	if err != nil {
 		disconnect(dbclient)
 		if err == mongo.ErrNoDocuments {
