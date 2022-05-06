@@ -12,7 +12,7 @@ export interface FormValues {
     username: string,
     email: string,
     password: string,
-    confirm_password: string,
+    conf_pass: string,
 };
 
 export interface SignUpProps {};
