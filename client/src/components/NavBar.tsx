@@ -8,7 +8,7 @@ const NavBar:React.FC = () => {
                 <li className="hover:scale-105 font-bold">Page 1</li>
                 <li className="hover:scale-105 font-bold">Page 2</li>
                 <li className="hover:scale-105 font-bold">
-                    <a href="/signin">Sign In</a>
+                    <a href="/signup">Sign Up</a>
                 </li>
             </ul>
         </div>

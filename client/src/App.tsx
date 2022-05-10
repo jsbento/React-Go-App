@@ -2,11 +2,12 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import Layout from './components/Layout';
+import Pages from './Pages';
 
-function App({props}:any) {
+function App() {
   return (
     <Layout>
-      <Component {...props}/>
+      <Pages/>
     </Layout>
   );
 }

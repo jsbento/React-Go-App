@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import { FormValues } from "../types/Types";
 import * as yup from "yup";
 import { Field, Form, Formik } from "formik";
+import "../../src/styles/Card.css"
 
 const SignUpScheme = yup.object().shape({
     username: yup.string().trim().required("Username required"),
@@ -22,7 +23,7 @@ const SERVER_URI = "http://localhost:8080"
 const SignUpForm: React.FC = () => {
     const [exists, setExists] = useState<boolean>(false);
     return (
-        <div className="flex flex-col items-center">
+        <div id="sign-up-card" className="card flex flex-col items-center">
             <Formik validationSchema={SignUpScheme} validateOnBlur={false} validateOnChange={false} initialValues={initial_values} onSubmit={async (values, actions) => {
                 console.log(values.username);
                 
@@ -63,22 +64,25 @@ const SignUpForm: React.FC = () => {
                 }
             }}>
                 {({errors, isSubmitting}) => (
-                    <Form className="flex flex-col justify-center items-center">
-                        <label htmlFor="username">Username</label>
-                        <Field id="username" name="username" type="text" placeholder="Username" autoComplete="off"/>
-                        <label htmlFor="email">Email</label>
-                        <Field id="email" name="email" type="text" placeholder="Email" autoComplete="off"/>
-                        <label htmlFor="password">Password</label>
-                        <Field id="password" name="password" type="password" placeholder="Password" autoComplete="off"/>
-                        <label htmlFor="conf_pass">Confirm Password</label>
-                        <Field id="conf_pass" name="conf_pass" type="password" placeholder="Confirm Password" autoComplete="off"/>
-                        <button className="border-2 w-auto p-1 rounded-md m-1 font-semibold" type="submit">Sign Up</button>
-                        {errors.username ? <div>{errors.username}</div> : null}
-                        {errors.email ? <div>{errors.email}</div> : null}
-                        {errors.password ? <div>{errors.password}</div> : null}
-                        {errors.conf_pass ? <div>{errors.conf_pass}</div> : null}
-                        {isSubmitting ? (<div className="animate-pulse font-semibold text-lg">Loading...</div>) : null}
-                    </Form>
+                    <>
+                        <h2 className="font-bold">Sign Up</h2>
+                        <Form className="flex flex-col justify-center items-center mx-auto my-auto w-fit">
+                            <label htmlFor="username">Username</label>
+                            <Field id="username" name="username" type="text" placeholder="Username" autoComplete="off"/>
+                            <label htmlFor="email">Email</label>
+                            <Field id="email" name="email" type="text" placeholder="Email" autoComplete="off"/>
+                            <label htmlFor="password">Password</label>
+                            <Field id="password" name="password" type="password" placeholder="Password" autoComplete="off"/>
+                            <label htmlFor="conf_pass">Confirm Password</label>
+                            <Field id="conf_pass" name="conf_pass" type="password" placeholder="Confirm Password" autoComplete="off"/>
+                            <button className="border-2 w-auto p-1 rounded-md m-1 font-semibold" type="submit">Sign Up</button>
+                            {errors.username ? <div>{errors.username}</div> : null}
+                            {errors.email ? <div>{errors.email}</div> : null}
+                            {errors.password ? <div>{errors.password}</div> : null}
+                            {errors.conf_pass ? <div>{errors.conf_pass}</div> : null}
+                            {isSubmitting ? (<div className="animate-pulse font-semibold text-lg">Loading...</div>) : null}
+                        </Form>
+                    </>
                 )}
             </Formik>
         </div>
