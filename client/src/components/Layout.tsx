@@ -1,8 +1,15 @@
 import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+// Components
 import NavBar from "./NavBar";
 import Footer from "./Footer";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import SignIn from "../pages/SignUp";
+
+// Pages
+import SignUp from "../pages/SignUp";
+import Login from "../pages/Login";
+
+// Types
 import { LayoutProps } from "../types/Types";
 
 const Layout:React.FC<LayoutProps> = () => {
@@ -11,7 +18,8 @@ const Layout:React.FC<LayoutProps> = () => {
             <BrowserRouter>
                 <NavBar/>
                 <Routes>
-                    <Route path="signup" element={<SignIn/>}/>
+                    <Route path="" element={<Login/>}/>
+                    <Route path="signup" element={<SignUp/>}/>
                 </Routes>
             </BrowserRouter>
             <div className="absolute bottom-0 flex justify-center w-full">
@@ -19,6 +27,6 @@ const Layout:React.FC<LayoutProps> = () => {
             </div>
         </div>
     );
-}
+};
 
 export default Layout;

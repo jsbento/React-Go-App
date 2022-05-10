@@ -25,8 +25,6 @@ const SignUpForm: React.FC = () => {
     return (
         <div id="sign-up-card" className="card flex flex-col items-center">
             <Formik validationSchema={SignUpScheme} validateOnBlur={false} validateOnChange={false} initialValues={initial_values} onSubmit={async (values, actions) => {
-                console.log(values.username);
-                
                 await fetch(SERVER_URI+`/users/exists?username=${values.username}`, {
                     method: 'GET'
                 })
@@ -34,11 +32,7 @@ const SignUpForm: React.FC = () => {
                     if(response.status === 200)
                         return response.json();
                 })
-                .then(data => {
-                    setExists(data.exists);
-                    console.log(exists);
-                    console.log(data.message);
-                })
+                .then(data => { setExists(data.exists); })
                 .catch(err => { console.log(err); });
 
                 if(exists) {
@@ -65,21 +59,21 @@ const SignUpForm: React.FC = () => {
             }}>
                 {({errors, isSubmitting}) => (
                     <>
-                        <h2 className="font-bold">Sign Up</h2>
+                        <h2 className="font-bold p-2">Sign Up</h2>
                         <Form className="flex flex-col justify-center items-center mx-auto my-auto w-fit">
-                            <label htmlFor="username">Username</label>
+                            <label id="form-elt" htmlFor="username">Username</label>
                             <Field id="username" name="username" type="text" placeholder="Username" autoComplete="off"/>
-                            <label htmlFor="email">Email</label>
+                            <label id="form-elt" htmlFor="email">Email</label>
                             <Field id="email" name="email" type="text" placeholder="Email" autoComplete="off"/>
-                            <label htmlFor="password">Password</label>
+                            <label id="form-elt" htmlFor="password">Password</label>
                             <Field id="password" name="password" type="password" placeholder="Password" autoComplete="off"/>
-                            <label htmlFor="conf_pass">Confirm Password</label>
+                            <label id="form-elt" htmlFor="conf_pass">Confirm Password</label>
                             <Field id="conf_pass" name="conf_pass" type="password" placeholder="Confirm Password" autoComplete="off"/>
-                            <button className="border-2 w-auto p-1 rounded-md m-1 font-semibold" type="submit">Sign Up</button>
-                            {errors.username ? <div>{errors.username}</div> : null}
-                            {errors.email ? <div>{errors.email}</div> : null}
-                            {errors.password ? <div>{errors.password}</div> : null}
-                            {errors.conf_pass ? <div>{errors.conf_pass}</div> : null}
+                            <button className="border-2 w-auto p-1 rounded-md m-2 font-semibold" type="submit">Sign Up</button>
+                            {errors.username ? <div className="text-red-600">{errors.username}</div> : null}
+                            {errors.email ? <div className="text-red-600">{errors.email}</div> : null}
+                            {errors.password ? <div className="text-red-600">{errors.password}</div> : null}
+                            {errors.conf_pass ? <div className="text-red-600">{errors.conf_pass}</div> : null}
                             {isSubmitting ? (<div className="animate-pulse font-semibold text-lg">Loading...</div>) : null}
                         </Form>
                     </>

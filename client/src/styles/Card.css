@@ -4,9 +4,15 @@
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
     border-radius: 5px;
     padding: 20px 5px;
+    width: 300px;
 }
 
-#sign-up-card {
+#sign-up-card, #login-card {
     margin: auto;
     max-width: 400px;
+}
+
+#form-elt {
+    padding: 5px;
+    padding-top: 30px;
 }

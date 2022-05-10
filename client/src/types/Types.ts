@@ -5,7 +5,7 @@ export interface LayoutProps {};
 
 export interface FormValues {
     username: string,
-    email: string,
+    email?: string,
     password: string,
-    conf_pass: string,
+    conf_pass?: string,
 };
