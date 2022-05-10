@@ -9,6 +9,6 @@ const Footer:React.FC<FooterProps> = () => {
             </div>
         </footer>
     );
-}
+};
 
 export default Footer;
