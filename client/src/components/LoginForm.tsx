@@ -2,7 +2,9 @@ import React from "react";
 import { FormValues } from "../types/Types";
 import * as yup from "yup";
 import { Field, Form, Formik } from "formik";
-import "../../src/styles/Card.css"
+import "../../src/styles/Card.css";
+
+const SERVER_URI = "http://localhost:8080";
 
 const LoginScheme = yup.object().shape({
     username: yup.string().trim().required("Username required"),
@@ -18,7 +20,21 @@ const LoginForm: React.FC = () => {
     return (
         <div id="login-card" className="card flex flex-col items-center">
             <Formik validationSchema={LoginScheme} validateOnBlur={false} validateOnChange={false} initialValues={initial_values} onSubmit={async (values, actions) => {
-                // Generate token on backend, recieve token and set as a cookie
+                const token = await fetch(`${SERVER_URI}/users/login`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        "username": values.username,
+                        "password": values.password
+                    })
+                })
+                .then(response => { return response.json(); })
+                .then(data => {
+                    console.log(data.message);
+                    return data.token;
+                })
+                .catch(err => { console.log(err); });
+                document.cookie = `token=${token}; SameSite=None; Secure`;
+                window.location.href = '/dashboard';
                 actions.setSubmitting(false);
             }}>
                 {({errors, isSubmitting}) => (

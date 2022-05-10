@@ -8,6 +8,8 @@ import Footer from "./Footer";
 // Pages
 import SignUp from "../pages/SignUp";
 import Login from "../pages/Login";
+import Dashboard from "../pages/Dashboard";
+import Profile from "../pages/Profile";
 
 // Types
 import { LayoutProps } from "../types/Types";
@@ -19,6 +21,8 @@ const Layout:React.FC<LayoutProps> = () => {
                 <NavBar/>
                 <Routes>
                     <Route path="" element={<Login/>}/>
+                    <Route path="/profile" element={<Profile/>}/>
+                    <Route path="/dashboard" element={<Dashboard/>}/>
                     <Route path="signup" element={<SignUp/>}/>
                 </Routes>
             </BrowserRouter>

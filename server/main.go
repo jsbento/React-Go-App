@@ -160,20 +160,20 @@ func login(c *gin.Context) {
 	var result User
 	collection := dbclient.Database("react-go-app").Collection("users")
 	findErr := collection.FindOne(context.TODO(), find, options.FindOne()).Decode(&result)
+	fmt.Printf("%v\n", result)
 
 	if findErr != nil {
 		disconnect(dbclient)
-		fmt.Printf("%v\n", findErr)
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Error finding user information"})
 	} else {
 		if result.Username == user.Username && result.Password == user.Password {
 			token := randSeq(15)
 			filter := bson.D{{Key: "username", Value: user.Username}}
 			update := bson.M{"$set": bson.M{"token": token}}
-			updateErr := collection.FindOneAndUpdate(context.TODO(), filter, update, options.FindOneAndUpdate())
+			var updated User
+			updateErr := collection.FindOneAndUpdate(context.TODO(), filter, update, options.FindOneAndUpdate()).Decode(&updated)
 			if updateErr != nil {
 				disconnect(dbclient)
-				fmt.Printf("%v\n", updateErr)
 				c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Failed to update user"})
 			} else {
 				disconnect(dbclient)

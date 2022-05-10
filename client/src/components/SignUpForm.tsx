@@ -18,7 +18,7 @@ const initial_values:FormValues = {
     conf_pass: ""
 };
 
-const SERVER_URI = "http://localhost:8080"
+const SERVER_URI = "http://localhost:8080";
 
 const SignUpForm: React.FC = () => {
     const [exists, setExists] = useState<boolean>(false);
