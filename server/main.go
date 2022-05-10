@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"time"
@@ -23,6 +25,18 @@ type User struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Token    string `json:"token"`
+}
+
+var chars = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+
+func randSeq(n int) string {
+	rand.Seed(time.Now().UnixNano())
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(b)
 }
 
 func postUser(c *gin.Context) {
@@ -134,6 +148,41 @@ func checkUserExists(c *gin.Context) {
 	}
 }
 
+func login(c *gin.Context) {
+	dbclient = connect()
+
+	body, _ := ioutil.ReadAll(c.Request.Body)
+	var user User
+	json.Unmarshal(body, &user)
+
+	find := bson.D{{Key: "username", Value: user.Username}}
+
+	var result User
+	collection := dbclient.Database("react-go-app").Collection("users")
+	findErr := collection.FindOne(context.TODO(), find, options.FindOne()).Decode(&result)
+
+	if findErr != nil {
+		disconnect(dbclient)
+		fmt.Printf("%v\n", findErr)
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Error finding user information"})
+	} else {
+		if result.Username == user.Username && result.Password == user.Password {
+			token := randSeq(15)
+			filter := bson.D{{Key: "username", Value: user.Username}}
+			update := bson.M{"$set": bson.M{"token": token}}
+			updateErr := collection.FindOneAndUpdate(context.TODO(), filter, update, options.FindOneAndUpdate())
+			if updateErr != nil {
+				disconnect(dbclient)
+				fmt.Printf("%v\n", updateErr)
+				c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Failed to update user"})
+			} else {
+				disconnect(dbclient)
+				c.IndentedJSON(http.StatusOK, gin.H{"message": "Successfully logged in", "token": token})
+			}
+		}
+	}
+}
+
 func connect() *mongo.Client {
 	uri := getDBURI("MONGODB_URI")
 	if uri == "" {
@@ -180,6 +229,7 @@ func main() {
 	router.GET("/users/find/:username", getUserByUsername)
 	router.GET("/users/exists", checkUserExists)
 	router.POST("/users", postUser)
+	router.POST("/users/login", login)
 	router.DELETE("/users", deleteUser)
 	router.Run("localhost:8080")
 }
