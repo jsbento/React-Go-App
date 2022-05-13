@@ -20,7 +20,7 @@ const Layout:React.FC<LayoutProps> = () => {
             <BrowserRouter>
                 <NavBar/>
                 <Routes>
-                    <Route path="" element={<Login/>}/>
+                    <Route path="/login" element={<Login/>}/>
                     <Route path="/profile" element={<Profile/>}/>
                     <Route path="/dashboard" element={<Dashboard/>}/>
                     <Route path="signup" element={<SignUp/>}/>
