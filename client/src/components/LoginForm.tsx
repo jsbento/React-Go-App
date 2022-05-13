@@ -2,6 +2,7 @@ import React from "react";
 import { FormValues } from "../types/Types";
 import * as yup from "yup";
 import { Field, Form, Formik } from "formik";
+import CryptoJS from "crypto-js";
 import "../../src/styles/Card.css";
 
 const SERVER_URI = "http://localhost:8080";
@@ -20,11 +21,12 @@ const LoginForm: React.FC = () => {
     return (
         <div id="login-card" className="card flex flex-col items-center">
             <Formik validationSchema={LoginScheme} validateOnBlur={false} validateOnChange={false} initialValues={initial_values} onSubmit={async (values, actions) => {
+                document.cookie = "token=; Max-Age=0; path=/; domain=" + window.location.hostname;
                 const token = await fetch(`${SERVER_URI}/users/login`, {
                     method: 'POST',
                     body: JSON.stringify({
                         "username": values.username,
-                        "password": values.password
+                        "password": CryptoJS.AES.encrypt(values.password, process.env.REACT_APP_CRYPTO_KEY!).toString()
                     })
                 })
                 .then(response => { return response.json(); })

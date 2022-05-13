@@ -9,7 +9,7 @@ const NavBar:React.FC = () => {
                 <li className="hover:scale-105 font-bold">Page 1</li>
                 <li className="hover:scale-105 font-bold">Page 2</li>
                 <li className="hover:scale-105 font-bold">
-                    {document.cookie.indexOf('token=') == 0 ? <a href="/profile">Profile</a> : <a href="/login">Login</a>}
+                    {document.cookie.indexOf('token=') === 0 ? <a href="/profile">Profile</a> : <a href="/login">Login</a>}
                 </li>
             </ul>
         </div>
