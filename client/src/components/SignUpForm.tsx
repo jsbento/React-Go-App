@@ -44,7 +44,7 @@ const SignUpForm: React.FC = () => {
                     alert('Passwords do not match');
                 }
                 else {
-                    await fetch(SERVER_URI+'/users', {
+                    const token = await fetch(SERVER_URI+'/users', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -55,24 +55,12 @@ const SignUpForm: React.FC = () => {
                             password: CryptoJS.AES.encrypt(values.password, process.env.REACT_APP_CRYPTO_KEY!).toString()
                         })
                     })
-                    .catch(error => { console.log(error); });
-
-                    const token = await fetch(SERVER_URI+'/users/login', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            "username": values.username,
-                            "password": CryptoJS.AES.encrypt(values.password, process.env.REACT_APP_CRYPTO_KEY!).toString()
-                        })
-                    })
                     .then(response => { return response.json(); })
-                    .then(data => {
-                        console.log(data.message);
-                        return data.token;
-                    })
+                    .then(data => { return data.token; })
                     .catch(err => { console.log(err); });
+
                     document.cookie = `token=${token}; SameSite=None; Secure`;
                     window.location.href = '/dashboard';
-
                     actions.setSubmitting(false);
                 }
             }}>
